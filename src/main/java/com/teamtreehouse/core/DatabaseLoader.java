@@ -3,22 +3,27 @@ package com.teamtreehouse.core;
 import com.teamtreehouse.course.Course;
 import com.teamtreehouse.course.CourseRepository;
 import com.teamtreehouse.review.Review;
+import com.teamtreehouse.user.User;
+import com.teamtreehouse.user.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.IntStream;
 
 @Component
 public class DatabaseLoader implements ApplicationRunner {
     private final CourseRepository courses;
+    private final UserRepository users;
     
     @Autowired
-    public DatabaseLoader(CourseRepository courses) {
+    public DatabaseLoader(CourseRepository courses, UserRepository users) {
         this.courses = courses;
+        this.users = users;
     }
     
     @Override
@@ -44,6 +49,24 @@ public class DatabaseLoader implements ApplicationRunner {
             "Spring HATEOAS"
         };
     
+        List<User> students = Arrays.asList(
+            new User("jacobproffer", "Jacob",  "Proffer", "password", new String[] {"ROLE_USER"}),
+            new User("mlnorman", "Mike",  "Norman", "password", new String[] {"ROLE_USER"}),
+            new User("k_freemansmith", "Karen",  "Freeman-Smith", "password", new String[] {"ROLE_USER"}),
+            new User("seth_lk", "Seth",  "Kroger", "password", new String[] {"ROLE_USER"}),
+            new User("mrstreetgrid", "Java",  "Vince", "password", new String[] {"ROLE_USER"}),
+            new User("anthonymikhail", "Tony",  "Mikhail", "password", new String[] {"ROLE_USER"}),
+            new User("boog690", "AJ",  "Teacher", "password", new String[] {"ROLE_USER"}),
+            new User("faelor", "Erik",  "Faelor Shafer", "password", new String[] {"ROLE_USER"}),
+            new User("christophernowack", "Christopher",  "Nowack", "password", new String[] {"ROLE_USER"}),
+            new User("calebkleveter", "Caleb",  "Kleveter", "password", new String[] {"ROLE_USER"}),
+            new User("richdonellan", "Rich",  "Donnellan", "password", new String[] {"ROLE_USER"}),
+            new User("albertqerimi", "Albert",  "Qerimi", "password", new String[] {"ROLE_USER"})
+        );
+        
+        users.save(students);
+        users.save(new User("gwo","Gottlieb", "Wolf", "12345", new String[] {"ROLE_USER", "ROLE_ADMIN"}));
+    
         List<Course> courseList = new ArrayList<>();
         IntStream.range(0, 100)
             .forEach(i -> {
@@ -51,9 +74,13 @@ public class DatabaseLoader implements ApplicationRunner {
                 String buzzword = buzzwords[i % buzzwords.length];
                 String title = String.format(template, buzzword);
                 Course course1 = new Course(title, "http://example.com");
-                course1.addReview(new Review(i % 5, String.format("More %s please", buzzword)));
+                Review review = new Review((i % 5) + 1, String.format("More %s please", buzzword));
+                review.setReviewer(students.get(i % students.size()));
+                course1.addReview(review);
                 courseList.add(course1);
             });
         courses.save(courseList);
+        
+        
     }
 }
